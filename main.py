@@ -3,6 +3,7 @@ import threading
 import time
 
 import yaml
+from flask import Flask, jsonify
 from paho.mqtt import client as mqtt
 
 from trilateration import trilateration
@@ -46,6 +47,7 @@ class Subscribing:
         lock.release()
 
 
+devicelist = []
 def main(lock):
     global devlist
     while True:
@@ -58,7 +60,7 @@ def main(lock):
         devlist = {k1: item for (k1, item) in newlist.items() if len(item)}
         lock.release()
 
-        devicelist = []
+        devicelist.clear()
         for k1, receiver in devlist.items():
             if len(receiver) >= 3:
                 coordinates = (trilateration([item for item in receiver.values()]).calc())
@@ -127,8 +129,23 @@ def calcColorWord(dictofled):
     return returnbyte
 
 
+app = Flask(__name__)
+app.secret_key = '\xfd{H\xe5<\x95\xf9\xe3\x96.5\xd1\x01O<!\xd5\xa2\xa0\x9fR"\xa1\xa832323'
+
+
+@app.route("/getBeacons", methods=['GET'])
+def getBeacons():
+    return jsonify(devicelist)
+
+
+def webWorker():
+    app.run(host="0.0.0.0")
+
+
 sub = threading.Thread(target=Subscribing, args=(lock,), name='Sub')
 pub = threading.Thread(target=main, args=(lock,), name='Main')
+web = threading.Thread(target=webWorker)
 
 sub.start()
 pub.start()
+web.start()
