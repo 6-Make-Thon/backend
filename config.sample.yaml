@@ -27,3 +27,11 @@ ledColor:
   orange: 10
   red: 15
   # green before the number in yellow
+
+areas:
+  - name: Frischebereich
+    points:
+      - [0, 0]
+      - [0, 10]
+      - [10, 10]
+      - [10, 0 ]
