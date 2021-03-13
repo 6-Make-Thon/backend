@@ -1,3 +1,4 @@
+import math
 import threading
 import time
 
@@ -57,11 +58,43 @@ def main(lock):
         devlist = {k1: item for (k1, item) in newlist.items() if len(item)}
         lock.release()
 
+        devicelist = []
         for k1, receiver in devlist.items():
             if len(receiver) >= 3:
                 coordinates = (trilateration([item for item in receiver.values()]).calc())
                 x,y = coordinates[0],coordinates[1]
+                devicelist.append({
+                    'mac': k1,
+                    'x': x,
+                    'y': y
+                })
                 print(f"receiver:{k1}; x:{x:.2f},y:{y:.2f}")
+        searchNeightbors(devicelist)
+
+
+def searchNeightbors(devicelist):
+    strangerlist = devicelist.copy()
+    for item in devicelist:
+        for stranger in strangerlist:
+            if item != stranger:
+                delta_x = abs(item['x'] - stranger['x'])
+                delta_y = abs(item['y'] - stranger['y'])
+
+                if item['x'] < stranger['x']:  # 1. and 4. quadrant
+                    if item['y'] < stranger['y']:  # 1. quadrant
+                        offset = -90
+                    else:  # 4. quadrant
+                        offset = 360
+                else:
+                    if item['y'] < stranger['y']:  # 2. quadrant
+                        offset = 180
+                    else:  # 3. quadrant
+                        offset = 180
+
+                distance = math.sqrt(pow(delta_x, 2) + pow(delta_y,2))
+
+                grad = abs(math.degrees(math.atan(delta_y/delta_x)) + offset)
+                print(f"Distance between {item['mac']} and {stranger['mac']}: {distance:.2f} and {grad:.2f}°")
 
 
 sub = threading.Thread(target=Subscribing, args=(lock,), name='Sub')
