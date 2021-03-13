@@ -106,12 +106,9 @@ def searchNeightbors(devicelist):
                 distance = math.sqrt(pow(delta_x, 2) + pow(delta_y,2))
 
                 grad = abs(math.degrees(math.atan(delta_y/delta_x)) + offset)
-                print(f"Distance between {item['mac']} and {stranger['mac']}: {distance:.2f} and {grad:.2f}°")
 
                 if config['strangerdetection']['mindistance'] < distance < config['strangerdetection']['maxdistance']:
                     strangerInGrad[int(grad/45)] = strangerInGrad[int(grad/45)] + 1 if int(grad/45) in strangerInGrad else 1
-        print(item)
-        print(calcColorWord(strangerInGrad))
         client.publish(f"beaconator/ble/{item['bestsender']}/downlink/{item['mac']}", payload=calcColorWord(strangerInGrad))
 
 
@@ -119,12 +116,13 @@ def calcColorWord(dictofled):
     returnbyte = 0x00
 
     for led, count in dictofled.items():
-        if count <= config['ledColor']['yellow']:
-            returnbyte = returnbyte | 1 << led * 2
-        elif count <= config['ledColor']['orange']:
-            returnbyte = returnbyte | 2 << led * 2
-        else:
+        if count >= config['ledColor']['red']:
             returnbyte = returnbyte | 3 << led * 2
+        elif count >= config['ledColor']['orange']:
+            returnbyte = returnbyte | 2 << led * 2
+        elif count >= config['ledColor']['yellow']:
+            returnbyte = returnbyte | 1 << led * 2
+
 
     return returnbyte
 
