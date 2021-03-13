@@ -5,6 +5,7 @@ import time
 import yaml
 from flask import Flask, jsonify
 from paho.mqtt import client as mqtt
+from shapely.geometry import Point, Polygon
 
 from trilateration import trilateration
 
@@ -48,8 +49,11 @@ class Subscribing:
 
 
 devicelist = []
+area = {}
+
+
 def main(lock):
-    global devlist
+    global devlist, area
     while True:
         time.sleep(1)
 
@@ -73,6 +77,19 @@ def main(lock):
                 })
                 print(f"receiver:{k1}; x:{x:.2f},y:{y:.2f}")
         searchNeightbors(devicelist)
+        area = beaconinarea(devicelist)
+
+
+def beaconinarea(devicelist):
+    returndict = {}
+    for area in config['areas']:
+        poly = Polygon([tuple(x) for x in area['points']])
+        beaconnumber = 0
+        for device in devicelist:
+            point = Point(device['x'], device['y'])
+            beaconnumber += 1
+        returndict[area['name']] = beaconnumber
+    return returndict
 
 
 def findbestsender(devlist):
@@ -136,6 +153,10 @@ app.secret_key = '\xfd{H\xe5<\x95\xf9\xe3\x96.5\xd1\x01O<!\xd5\xa2\xa0\x9fR"\xa1
 @app.route("/getBeacons", methods=['GET'])
 def getBeacons():
     return jsonify(devicelist)
+
+@app.route('/getArea', methods=['GET'])
+def getArea():
+    return jsonify(area)
 
 
 def webWorker():
