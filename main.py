@@ -8,10 +8,10 @@ with open('config.yaml') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 client = mqtt.Client(client_id='beaconator')
-if config['user'] != '' and config['pass']:
-    client.username_pw_set(config['user'], config['pass'])
+if 'user' in config['mqtt'] and config['mqtt']['user'] != '' 'pass' in config['mqtt'] and config['mqtt']['pass']:
+    client.username_pw_set(config['mqtt']['user'], config['mqtt']['pass'])
 
-client.connect(config['host'], port=config['port'])
+client.connect(config['mqtt']['host'], port=config['mqtt']['port'])
 client.subscribe('beaconator/#')
 lock = threading.Lock()
 devlist = {}
@@ -33,14 +33,17 @@ class Subscribing:
     def save_measure(self, message):
         self.lock.acquire()
         path = message.topic.split('/')
-        x0,y0 = float(path[3]), float(path[4])
+        if path[2] in config['receiver']:
+            x0,y0 = float(config['receiver'][path[2]]['x']), float(config['receiver'][path[2]]['y'])
+        else:
+            raise
         rssi = float(message.payload.decode('utf-8'))
         distance = pow(10.0, ((-69.0 - rssi)/(10.0 * 2.0)))
         entry = {'rssi': rssi, 'x': x0, 'y': y0, 'dist': distance, 'time': time.time()}
         if path[6] not in devlist:
-            devlist[path[6]] = {path[2]: entry}
+            devlist[path[4]] = {path[2]: entry}
         else:
-            devlist[path[6]][path[2]] = entry
+            devlist[path[4]][path[2]] = entry
         lock.release()
 
 

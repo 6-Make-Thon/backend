@@ -1,4 +1,18 @@
-host: 10.1.6.31
-port: 1883
-user:
-pass:
+mqtt:
+  host: 10.1.6.31
+  port: 1883
+  user:
+  pass:
+receiver:
+  receiver1:
+    x: 2
+    y: 2
+  receiver2:
+    x: 15
+    y: 2
+  receiver3:
+    x: 15
+    y: 17
+  receiver4:
+    x: 2
+    y: 17
