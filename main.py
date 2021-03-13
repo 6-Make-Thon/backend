@@ -1,0 +1,70 @@
+from paho.mqtt import client as mqtt
+from trilateration import trilateration
+import threading
+import time
+import yaml
+
+with open('config.yaml') as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)
+
+client = mqtt.Client(client_id='beaconator')
+if config['user'] != '' and config['pass']:
+    client.username_pw_set(config['user'], config['pass'])
+
+client.connect(config['host'], port=config['port'])
+client.subscribe('beaconator/#')
+lock = threading.Lock()
+devlist = {}
+
+
+class Subscribing:
+    def __init__(self, lock):
+        self.lock = lock
+        client.on_message = self.on_message
+        client.loop_forever()
+
+    def on_message(self, client, userdata, message):
+        print(f"message received {str(message.payload.decode('utf-8'))}")
+        print(f"message topic={message.topic}")
+        print(f"message qos={message.qos}")
+        print(f"message retain flag={message.retain}")
+        self.save_measure(message)
+
+    def save_measure(self, message):
+        self.lock.acquire()
+        path = message.topic.split('/')
+        x0,y0 = float(path[3]), float(path[4])
+        rssi = float(message.payload.decode('utf-8'))
+        distance = pow(10.0, ((-69.0 - rssi)/(10.0 * 2.0)))
+        entry = {'rssi': rssi, 'x': x0, 'y': y0, 'dist': distance, 'time': time.time()}
+        if path[6] not in devlist:
+            devlist[path[6]] = {path[2]: entry}
+        else:
+            devlist[path[6]][path[2]] = entry
+        lock.release()
+
+
+def main(lock):
+    global devlist
+    while True:
+        time.sleep(1)
+
+        lock.acquire()
+        newlist = {}
+        for k1, receiver in devlist.items():
+            newlist[k1] = {k2: item for (k2,item) in receiver.items() if item['time'] > time.time()-10}
+        devlist = {k1: item for (k1, item) in newlist.items() if len(item)}
+        lock.release()
+
+        for k1, receiver in devlist.items():
+            if len(receiver) >= 3:
+                coordinates = (trilateration([item for item in receiver.values()]).calc())
+                x,y = coordinates[0],coordinates[1]
+                print(f"x:{x:.2f},y:{y:.2f}")
+
+
+sub = threading.Thread(target=Subscribing, args=(lock,), name='Sub')
+pub = threading.Thread(target=main, args=(lock,), name='Main')
+
+sub.start()
+pub.start()
