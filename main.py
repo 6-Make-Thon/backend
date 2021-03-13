@@ -182,7 +182,7 @@ def getAreaForSign():
         elif value >= config['ledColor']['red']:
             return {'text': 'ist mittel besucht', 'color': 'yellow'}
         else:
-            return {'text': 'ist aktuell wenig besucht. <br>Wir wünschen viel Spaß beim einkaufen', 'color': 'green'}
+            return {'text': 'ist aktuell wenig besucht. <br>Wir wünschen viel Spaß beim Einkaufen', 'color': 'green'}
 
 
 @app.context_processor
