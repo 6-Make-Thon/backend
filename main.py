@@ -1,8 +1,10 @@
-from paho.mqtt import client as mqtt
-from trilateration import trilateration
 import threading
 import time
+
 import yaml
+from paho.mqtt import client as mqtt
+
+from trilateration import trilateration
 
 with open('config.yaml') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
@@ -24,10 +26,6 @@ class Subscribing:
         client.loop_forever()
 
     def on_message(self, client, userdata, message):
-        print(f"message received {str(message.payload.decode('utf-8'))}")
-        print(f"message topic={message.topic}")
-        print(f"message qos={message.qos}")
-        print(f"message retain flag={message.retain}")
         self.save_measure(message)
 
     def save_measure(self, message):
@@ -40,7 +38,7 @@ class Subscribing:
         rssi = float(message.payload.decode('utf-8'))
         distance = pow(10.0, ((-69.0 - rssi)/(10.0 * 2.0)))
         entry = {'rssi': rssi, 'x': x0, 'y': y0, 'dist': distance, 'time': time.time()}
-        if path[6] not in devlist:
+        if path[4] not in devlist:
             devlist[path[4]] = {path[2]: entry}
         else:
             devlist[path[4]][path[2]] = entry
@@ -63,7 +61,7 @@ def main(lock):
             if len(receiver) >= 3:
                 coordinates = (trilateration([item for item in receiver.values()]).calc())
                 x,y = coordinates[0],coordinates[1]
-                print(f"x:{x:.2f},y:{y:.2f}")
+                print(f"receiver:{k1}; x:{x:.2f},y:{y:.2f}")
 
 
 sub = threading.Thread(target=Subscribing, args=(lock,), name='Sub')
