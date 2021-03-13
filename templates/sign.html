@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+        <style type="text/css">
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #wrapper {
+            margin: 0;
+            min-height: 100%;
+            background-color: red
+        }
+
+        .centered {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          min-height: 100vh;
+          font-size:100px
+        }
+
+        * {
+        overflow:hidden; /* or auto */
+        }
+    </style>
+</head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{{
+  url_for('static', filename='jquery.js') }}">\x3C/script>')
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+  refreshInfos = function() {
+    $.get("/getAreaForSign?area={{name}}", function(data) {
+        $("#wrapper").css("background-color", data.color);
+        $("#text").html(data.text);
+    });
+  }
+
+  $(document).ready(function(){
+    setInterval(refreshInfos,2000);
+  });
+</script>
+<body>
+<div id="wrapper">
+    <div class="centered">
+        <h1 class="title">{{name}}</h1>
+        <h1 id="text">Bereich überfüllt</h1>
+    </div>
+</div>
+</body>
+</html>

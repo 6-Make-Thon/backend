@@ -28,6 +28,12 @@ ledColor:
   red: 15
   # green before the number in yellow
 
+areaColor:
+  yellow: 5
+  orange: 10
+  red: 15
+  # green before the number in yellow
+
 areas:
   - name: Frischebereich
     points:

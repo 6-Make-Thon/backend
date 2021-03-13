@@ -3,7 +3,7 @@ import threading
 import time
 
 import yaml
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort, render_template
 from paho.mqtt import client as mqtt
 from shapely.geometry import Point, Polygon
 
@@ -154,9 +154,54 @@ app.secret_key = '\xfd{H\xe5<\x95\xf9\xe3\x96.5\xd1\x01O<!\xd5\xa2\xa0\x9fR"\xa1
 def getBeacons():
     return jsonify(devicelist)
 
+
 @app.route('/getArea', methods=['GET'])
 def getArea():
-    return jsonify(area)
+    areareg = request.args.get('area')
+    if areareg is None:
+        return jsonify(area)
+    else:
+        return {'value': area[areareg] } if areareg in area else {'error': True}
+
+
+@app.route('/getAreaForSign', methods=['GET'])
+def getAreaForSign():
+    areareg = request.args.get('area')
+    if areareg is None:
+        return jsonify(area)
+    else:
+        if areareg not in area:
+            return {'error': True}
+
+        value = area[areareg]
+
+        if value >= config['ledColor']['red']:
+            return {'text': 'überfüllt', 'color': 'red'}
+        elif value >= config['ledColor']['red']:
+            return {'text': 'ist stark besucht', 'color': 'orange'}
+        elif value >= config['ledColor']['red']:
+            return {'text': 'ist mittel besucht', 'color': 'yellow'}
+        else:
+            return {'text': 'ist aktuell wenig besucht. <br>Wir wünschen viel Spaß beim einkaufen', 'color': 'green'}
+
+
+@app.context_processor
+def inject_title():
+    return dict(title="Bereichsschild")
+
+
+@app.route('/')
+def sign():
+    areareg = request.args.get('area')
+    if areareg is None:
+        abort(404, description="Ressource not found")
+    else:
+        return render_template("sign.html", name=areareg)
+
+
+@app.errorhandler(404)
+def resource_not_found(e):
+    return jsonify(error=str(e)), 404
 
 
 def webWorker():
