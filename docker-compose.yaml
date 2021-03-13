@@ -1,0 +1,31 @@
+version: "3.6"
+services:
+        web:
+                build:
+                        context: ./
+                        dockerfile: Dockerfile
+                container_name: web
+                restart: always
+                ports:
+                        - 5000:5000
+                networks:
+                        - mqtt
+
+        mqtt:
+                image: eclipse-mosquitto
+                container_name: mqtt
+                restart: always
+                ports:
+                        - 1883:1883
+                networks:
+                        - mqtt
+                volumes:
+                        - /etc/localtime:/etc/localtime:ro
+                        - /etc/timezone:/etc/timezone:ro
+                        - mosquitto-volume:/mosquitto
+                        - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+networks:
+        mqtt:
+volumes:
+        mosquitto-volume:
+
