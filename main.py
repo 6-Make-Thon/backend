@@ -62,19 +62,31 @@ def main(lock):
         for k1, receiver in devlist.items():
             if len(receiver) >= 3:
                 coordinates = (trilateration([item for item in receiver.values()]).calc())
-                x,y = coordinates[0],coordinates[1]
+                x, y = coordinates[0], coordinates[1]
                 devicelist.append({
                     'mac': k1,
                     'x': x,
-                    'y': y
+                    'y': y,
+                    'bestsender': findbestsender(receiver)
                 })
                 print(f"receiver:{k1}; x:{x:.2f},y:{y:.2f}")
         searchNeightbors(devicelist)
 
 
+def findbestsender(devlist):
+    bestsender = ''
+    min = -255
+    for name, value in devlist.items():
+        if value['rssi'] > min:
+            min = value['rssi']
+            bestsender = name
+    return bestsender
+
+
 def searchNeightbors(devicelist):
     strangerlist = devicelist.copy()
     for item in devicelist:
+        strangerInGrad = {}
         for stranger in strangerlist:
             if item != stranger:
                 delta_x = abs(item['x'] - stranger['x'])
@@ -95,6 +107,26 @@ def searchNeightbors(devicelist):
 
                 grad = abs(math.degrees(math.atan(delta_y/delta_x)) + offset)
                 print(f"Distance between {item['mac']} and {stranger['mac']}: {distance:.2f} and {grad:.2f}°")
+
+                if config['strangerdetection']['mindistance'] < distance < config['strangerdetection']['maxdistance']:
+                    strangerInGrad[int(grad/45)] = strangerInGrad[int(grad/45)] + 1 if int(grad/45) in strangerInGrad else 1
+        print(item)
+        print(calcColorWord(strangerInGrad))
+        client.publish(f"beaconator/ble/{item['bestsender']}/downlink/{item['mac']}", payload=calcColorWord(strangerInGrad))
+
+
+def calcColorWord(dictofled):
+    returnbyte = 0x00
+
+    for led, count in dictofled.items():
+        if count <= config['ledColor']['yellow']:
+            returnbyte = returnbyte | 1 << led * 2
+        elif count <= config['ledColor']['orange']:
+            returnbyte = returnbyte | 2 << led * 2
+        else:
+            returnbyte = returnbyte | 3 << led * 2
+
+    return returnbyte
 
 
 sub = threading.Thread(target=Subscribing, args=(lock,), name='Sub')

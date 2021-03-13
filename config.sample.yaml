@@ -3,6 +3,7 @@ mqtt:
   port: 1883
   user:
   pass:
+
 receiver:
   receiver1:
     x: 2
@@ -16,3 +17,13 @@ receiver:
   receiver4:
     x: 2
     y: 17
+
+strangerdetection:
+  mindistance: 5
+  maxdistance: 40
+
+ledColor:
+  yellow: 5
+  orange: 10
+  red: 15
+  # green before the number in yellow
