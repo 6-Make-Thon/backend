@@ -1,5 +1,5 @@
 mqtt:
-  host: 10.1.6.31
+  host: mqtt
   port: 1883
   user:
   pass:
