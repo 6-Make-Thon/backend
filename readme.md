@@ -13,6 +13,8 @@ mosquitto_pub -h 10.1.6.31 -d -u USERNAME -P PASSWORT -t 'beaconator/ble/receive
 ```
 Should result in (4;10)
 
+In the standard Config you don't need USERNAME and PASSWORD
+
 ## MQTT
 MQTT is reachable on Port 1883
 
