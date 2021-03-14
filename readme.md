@@ -1,10 +1,10 @@
 # BubbleBoy - Backend
 
-##Beschreibung
+## Beschreibung
 BubbleBoy ist ein Trackingtool für BLE Beacons welches im Rahmen des 6. Make@thon entwickelt wurde.
 
 
-##TestData
+## TestData
 ```
 mosquitto_pub -h 10.1.6.31 -d -u USERNAME -P PASSWORT -t 'beaconator/ble/receiver1/raw/8caab583a40a' -m '-87.318' && 
 mosquitto_pub -h 10.1.6.31 -d -u USERNAME -P PASSWORT -t 'beaconator/ble/receiver2/raw/8caab583a40a' -m '-91.67' &&
@@ -13,10 +13,11 @@ mosquitto_pub -h 10.1.6.31 -d -u USERNAME -P PASSWORT -t 'beaconator/ble/receive
 ```
 Should result in (4;10)
 
-##MQTT
+## MQTT
 MQTT is reachable on Port 1883
 
-##API
+## API
+
     http://IP:5000/getBeacons
 Returns a List of Beacons with position
 
@@ -29,10 +30,11 @@ Returns among of beacons in area defined by argument
     http://IP:5000/?area=AREANAME
 Returns self refreshing SIGN for signage
 
-##Install
+## Install
 Just clone this repository.
 
 After that copy config.sample.yaml to config.yaml and edit it.
 
 To install it use
+
     docker-compose up -d
