@@ -127,7 +127,7 @@ def searchNeightbors(devicelist):
                 grad = abs(math.degrees(math.atan(delta_y/delta_x)) + offset)
 
                 if config['strangerdetection']['mindistance'] < distance < config['strangerdetection']['maxdistance']:
-                    strangerInGrad[int(grad/45)] = strangerInGrad[int(grad/45)] + 1 if int(grad/45) in strangerInGrad else 1
+                    strangerInGrad[int(grad/15)] = strangerInGrad[int(grad/15)] + 1 if int(grad/15) in strangerInGrad else 1
         client.publish(f"beaconator/ble/{item['bestsender']}/downlink/{item['mac']}", payload=calcColorWord(strangerInGrad))
 
 
