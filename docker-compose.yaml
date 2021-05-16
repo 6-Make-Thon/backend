@@ -5,6 +5,7 @@ services:
                         context: ./
                         dockerfile: Dockerfile
                 container_name: web
+                privileged: true
                 restart: always
                 ports:
                         - 5000:5000
