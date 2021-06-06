@@ -17,10 +17,17 @@ if 'user' in config['mqtt'] and config['mqtt']['user'] != '' 'pass' in config['m
     client.username_pw_set(config['mqtt']['user'], config['mqtt']['pass'])
 
 client.connect(config['mqtt']['host'], port=config['mqtt']['port'])
-client.subscribe('beaconator/#')
+client.subscribe('beaconator/ble/+/raw/#')
 lock = threading.Lock()
 devlist = {}
 
+
+def isfloat(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 class Subscribing:
     def __init__(self, lock):
@@ -37,7 +44,9 @@ class Subscribing:
         if path[2] in config['receiver']:
             x0,y0 = float(config['receiver'][path[2]]['x']), float(config['receiver'][path[2]]['y'])
         else:
-            raise
+            return
+        if not isfloat(message.payload.decode('utf-8')):
+            return
         rssi = float(message.payload.decode('utf-8'))
         distance = pow(10.0, ((-69.0 - rssi)/(10.0 * 2.0)))
         entry = {'rssi': rssi, 'x': x0, 'y': y0, 'dist': distance, 'time': time.time()}
